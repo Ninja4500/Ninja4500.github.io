@@ -11,7 +11,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #ffffff; /* خلفية بيضاء سادة كما في الصورة */
+            background-color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -28,29 +28,25 @@
             margin-bottom: 30px;
         }
 
-        select {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #e1e9eb;
-            border-radius: 8px;
-            background: #f0f2f5;
-            font-size: 16px;
-        }
-
         input {
             width: 100%;
             padding: 15px;
             margin-bottom: 25px;
-            border: 1px solid #e1e9eb;
+            border: 2px dashed #e1e9eb; /* جعل الحدود منقطة لتوحي بالسحب والإفلات */
             border-radius: 8px;
             font-size: 18px;
             box-sizing: border-box;
             text-align: center;
             direction: ltr;
+            transition: 0.3s;
         }
 
-        /* زر أخضر يشبه الموجود في الصورة */
+        input:focus {
+            border-color: #25D366;
+            outline: none;
+            background-color: #f9fffb;
+        }
+
         .btn-primary {
             display: block;
             width: 100%;
@@ -58,7 +54,7 @@
             background-color: #25D366;
             color: white;
             text-decoration: none;
-            border-radius: 25px; /* حواف دائرية مثل الصورة */
+            border-radius: 25px;
             font-size: 16px;
             font-weight: 500;
             border: none;
@@ -66,7 +62,6 @@
             margin-bottom: 10px;
         }
 
-        /* زر أبيض بحدود للخيارات الأخرى */
         .btn-secondary {
             display: block;
             width: 100%;
@@ -81,6 +76,12 @@
         }
 
         .btn-primary:hover { background-color: #1fb355; }
+        
+        .hint {
+            font-size: 12px;
+            color: #8696a0;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -88,39 +89,69 @@
     <div class="container">
         <h2>دردشة واتساب سريعة</h2>
         
-        <select id="countryCode">
-            <option value="966" selected>السعودية (+966)</option>
-            <option value="971">الإمارات (+971)</option>
-            <option value="20">مصر (+20)</option>
-        </select>
+        <input type="tel" id="phoneNumber" 
+               placeholder="اسحب الرقم هنا أو اكتبه"
+               ondrop="handleDrop(event)" 
+               ondragover="allowDrop(event)">
 
-        <input type="tel" id="phoneNumber" placeholder="5XXXXXXXX">
-
-        <button class="btn-primary" onclick="openApp()">فتح التطبيق مباشرة</button>
+        <button class="btn-primary" onclick="processNumber('app')">فتح التطبيق مباشرة</button>
+        <button class="btn-secondary" onclick="processNumber('web')">المتابعة عبر المتصفح</button>
         
-        <button class="btn-secondary" onclick="openWeb()">المتابعة عبر المتصفح</button>
+        <p class="hint">اسحب رقم حراج (tel:+966...) وأفلته داخل المربع</p>
     </div>
 
     <script>
-        function openApp() {
-            var code = document.getElementById('countryCode').value;
-            var phone = document.getElementById('phoneNumber').value;
-            phone = phone.replace(/\s+/g, '').replace('+', '');
+        // السماح بالإفلات داخل الخانة
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
 
-            if (phone === "") {
-                alert("الرجاء إدخال الرقم");
+        // معالجة النص عند إفلاته
+        function handleDrop(ev) {
+            ev.preventDefault();
+            var data = ev.dataTransfer.getData("text");
+            document.getElementById('phoneNumber').value = data;
+            processNumber('app'); // التشغيل تلقائياً بمجرد الإفلات
+        }
+
+        function cleanNumber(phone) {
+            // 1. حذف tel: و علامة + وأي مسافات
+            let clean = phone.replace(/tel:/g, '').replace(/\+/g, '').replace(/\s+/g, '');
+
+            // 2. حذف كود الدولة السعودي 966 إذا وجد في البداية
+            if (clean.startsWith('966')) {
+                clean = clean.substring(3);
+            }
+
+            // 3. إذا كان يبدأ بـ 05، نحذف الصفر ليتبقى 5
+            if (clean.startsWith('05')) {
+                clean = clean.substring(1);
+            }
+            
+            // تنظيف أي رموز أخرى متبقية غير الأرقام
+            clean = clean.replace(/\D/g, '');
+
+            return clean;
+        }
+
+        function processNumber(type) {
+            var rawPhone = document.getElementById('phoneNumber').value;
+            var finalPhone = cleanNumber(rawPhone);
+
+            if (finalPhone === "" || finalPhone.length < 9) {
+                alert("الرجاء إدخال رقم صحيح");
                 return;
             }
 
-            // هذا الرابط يحاول فتح التطبيق المثبت على الجهاز مباشرة
-            window.location.href = "whatsapp://send?phone=" + code + phone;
-        }
+            // وضع الرقم النظيف في الخانة للعرض
+            document.getElementById('phoneNumber').value = finalPhone;
 
-        function openWeb() {
-            var code = document.getElementById('countryCode').value;
-            var phone = document.getElementById('phoneNumber').value;
-            if (phone !== "") {
-                window.open("https://web.whatsapp.com/send?phone=" + code + phone, "_blank");
+            var fullNumber = "966" + finalPhone;
+
+            if (type === 'app') {
+                window.location.href = "whatsapp://send?phone=" + fullNumber;
+            } else {
+                window.open("https://web.whatsapp.com/send?phone=" + fullNumber, "_blank");
             }
         }
     </script>
