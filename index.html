@@ -3,49 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محول واتساب حراج</title>
-    <link rel="manifest" href="manifest.json">
+    <title>واتساب مباشر</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
-        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #25d366; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 10px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #ffffff; /* خلفية بيضاء سادة كما في الصورة */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        h2 {
+            font-weight: 500;
+            color: #111b21;
+            margin-bottom: 30px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #e1e9eb;
+            border-radius: 8px;
+            background: #f0f2f5;
+            font-size: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 25px;
+            border: 1px solid #e1e9eb;
+            border-radius: 8px;
+            font-size: 18px;
+            box-sizing: border-box;
+            text-align: center;
+            direction: ltr;
+        }
+
+        /* زر أخضر يشبه الموجود في الصورة */
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #25D366;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px; /* حواف دائرية مثل الصورة */
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        /* زر أبيض بحدود للخيارات الأخرى */
+        .btn-secondary {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            background-color: transparent;
+            color: #111b21;
+            text-decoration: none;
+            border: 1px solid #e1e9eb;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover { background-color: #1fb355; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="loader"></div>
-        <h2>جاري التحويل إلى واتساب...</h2>
-        <p id="status">يتم الآن قراءة الرقم من حراج</p>
+
+    <div class="container">
+        <h2>دردشة واتساب سريعة</h2>
+        
+        <select id="countryCode">
+            <option value="966" selected>السعودية (+966)</option>
+            <option value="971">الإمارات (+971)</option>
+            <option value="20">مصر (+20)</option>
+        </select>
+
+        <input type="tel" id="phoneNumber" placeholder="5XXXXXXXX">
+
+        <button class="btn-primary" onclick="openApp()">فتح التطبيق مباشرة</button>
+        
+        <button class="btn-secondary" onclick="openWeb()">المتابعة عبر المتصفح</button>
     </div>
 
     <script>
-        function redirectToWhatsApp() {
-            // جلب الرقم من الرابط سواء كان tel: أو ?phone=
-            const urlParams = new URLSearchParams(window.location.search);
-            let rawNumber = urlParams.get('phone') || window.location.hash || window.location.pathname;
-            
-            // تنظيف الرقم من أي نصوص أو رموز (مثل tel: أو المسارات)
-            let cleanNumber = rawNumber.replace(/\D/g, '');
+        function openApp() {
+            var code = document.getElementById('countryCode').value;
+            var phone = document.getElementById('phoneNumber').value;
+            phone = phone.replace(/\s+/g, '').replace('+', '');
 
-            if (cleanNumber.length >= 9) {
-                // إذا بدأ الرقم بـ 0 نغيره لـ 966
-                if (cleanNumber.startsWith('05')) {
-                    cleanNumber = '966' + cleanNumber.substring(1);
-                }
-                
-                document.getElementById('status').innerText = "تم العثور على الرقم: " + cleanNumber;
-                
-                // التحويل التلقائي
-                setTimeout(() => {
-                    window.location.href = "https://wa.me/" + cleanNumber;
-                }, 500);
-            } else {
-                document.getElementById('status').innerText = "الرجاء الضغط على رقم هاتف في حراج";
+            if (phone === "") {
+                alert("الرجاء إدخال الرقم");
+                return;
             }
+
+            // هذا الرابط يحاول فتح التطبيق المثبت على الجهاز مباشرة
+            window.location.href = "whatsapp://send?phone=" + code + phone;
         }
 
-        window.onload = redirectToWhatsApp;
+        function openWeb() {
+            var code = document.getElementById('countryCode').value;
+            var phone = document.getElementById('phoneNumber').value;
+            if (phone !== "") {
+                window.open("https://web.whatsapp.com/send?phone=" + code + phone, "_blank");
+            }
+        }
     </script>
+
 </body>
 </html>
