@@ -1,109 +1,145 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>محول واتساب المطور</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }
-        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 2px dashed #25D366; border-radius: 10px; font-size: 18px; text-align: center; box-sizing: border-box; }
-        button { background: #25D366; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-size: 16px; width: 100%; }
-        button:hover { background: #128C7E; }
-        p { color: #666; font-size: 14px; }
+        /* التوسيط الكامل في منتصف الشاشة */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0;
+            background-color: #f0f2f5; 
+        }
+
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
+            text-align: center; 
+            width: 90%; 
+            max-width: 450px; 
+        }
+
+        h2 { color: #128C7E; margin-bottom: 10px; }
+
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin: 20px 0; 
+            border: 2px dashed #25D366; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            text-align: center; 
+            box-sizing: border-box; 
+            outline: none;
+            transition: 0.3s;
+        }
+        
+        input:focus { border-style: solid; background-color: #f9fffb; }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button { 
+            border: none; 
+            padding: 14px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold;
+            width: 100%; 
+            transition: 0.3s;
+        }
+
+        .btn-main { background: #25D366; color: white; }
+        .btn-main:hover { background: #128C7E; }
+
+        .btn-app { background: #075E54; color: white; }
+        .btn-app:hover { background: #054a42; }
+
+        .btn-web { background: #34b7f1; color: white; }
+        .btn-web:hover { background: #2196f3; }
+
+        p { color: #666; font-size: 14px; margin: 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>واتساب مباشر</h2>
-    <p>اسحب الرقم وأفلته هنا</p>
-    <input type="text" id="phoneInput" placeholder="أفلت الرقم هنا..." ondrop="handleDrop(event)" oninput="cleanAndRedirect()">
-    <button onclick="cleanAndRedirect()">فتح في واتساب</button>
+    <p>اسحب الرقم وأفلته هنا أو أدخله يدوياً</p>
+    
+    <input type="text" id="phoneInput" placeholder="5xxxxxxxx" ondrop="handleDrop(event)" oninput="formatNumber()">
+    
+    <div class="button-group">
+        <button class="btn-main" onclick="cleanAndRedirect()">فتح سريع (wa.me)</button>
+        <button class="btn-app" onclick="openApp()">فتح في التطبيق مباشرة</button>
+        <button class="btn-web" onclick="openWeb()">المتابعة عبر واتساب ويب</button>
+    </div>
 </div>
 
 <script>
+    // لتنظيف الرقم تلقائياً أثناء الكتابة
+    function formatNumber() {
+        let input = document.getElementById('phoneInput');
+        let val = input.value.replace(/\D/g, ''); // حذف أي شيء ليس رقماً
+        
+        if (val.startsWith('966')) val = val.substring(3);
+        if (val.startsWith('05')) val = val.substring(1);
+        
+        input.value = val;
+    }
+
     function handleDrop(event) {
-        // منع السلوك الافتراضي للمتصفح
         event.preventDefault();
-        // الحصول على النص المسحوب
         let data = event.dataTransfer.getData("text");
         document.getElementById('phoneInput').value = data;
-        // معالجة الرقم فور الإفلات
-        cleanAndRedirect();
+        formatNumber();
+    }
+
+    function getFinalNumber() {
+        let num = document.getElementById('phoneInput').value;
+        if (num.length < 9) {
+            alert("يرجى التأكد من صحة الرقم");
+            return null;
+        }
+        return "966" + num;
     }
 
     function cleanAndRedirect() {
-        let input = document.getElementById('phoneInput');
-        let rawData = input.value;
+        let fullNum = getFinalNumber();
+        if (fullNum) window.location.href = "https://wa.me/" + fullNum;
+    }
 
-        // 1. حذف نصوص البداية tel: و + و أي مسافات
-        let cleanNumber = rawData.replace(/tel:/g, '').replace(/\+/g, '').replace(/\s/g, '');
+    function openApp() {
+        let fullNum = getFinalNumber();
+        if (fullNum) window.location.href = "whatsapp://send?phone=" + fullNum;
+    }
 
-        // 2. حذف كود الدولة 966 إذا وجد في البداية
-        if (cleanNumber.startsWith('966')) {
-            cleanNumber = cleanNumber.substring(3);
-        }
+    function openWeb() {
+        let fullNum = getFinalNumber();
+        if (fullNum) window.open("https://web.whatsapp.com/send?phone=" + fullNum, "_blank");
+    }
 
-        // 3. التأكد من أن الرقم يبدأ بـ 5 (إذا كان يبدأ بـ 05 نحذف الصفر)
-        if (cleanNumber.startsWith('05')) {
-            cleanNumber = cleanNumber.substring(1);
-        }
-
-        // الآن الرقم أصبح بصيغة 5XXXXXXXX
-        if (cleanNumber.length >= 9) {
-            input.value = cleanNumber;
-            // التوجيه للواتساب بصيغة 966 + الرقم المتبقي
-            window.location.href = "https://wa.me/966" + cleanNumber;
+    // الكود الخاص بمعلمات الرابط (URL Params)
+    window.onload = function() {
+        const params = new URLSearchParams(window.location.search);
+        const tel = params.get('tel');
+        if (tel) {
+            let clean = tel.replace(/\D/g, '');
+            window.location.href = "https://wa.me/" + clean;
         }
     }
 </script>
 
 </body>
 </html>
-        <button class="btn-primary" onclick="openApp()">فتح التطبيق مباشرة</button>
-        
-        <button class="btn-secondary" onclick="openWeb()">المتابعة عبر المتصفح</button>
-    </div>
-
-    <script>
-        function openApp() {
-            var code = document.getElementById('countryCode').value;
-            var phone = document.getElementById('phoneNumber').value;
-            phone = phone.replace(/\s+/g, '').replace('+', '');
-
-            if (phone === "") {
-                alert("الرجاء إدخال الرقم");
-                return;
-            }
-
-            // هذا الرابط يحاول فتح التطبيق المثبت على الجهاز مباشرة
-            window.location.href = "whatsapp://send?phone=" + code + phone;
-        }
-
-        function openWeb() {
-            var code = document.getElementById('countryCode').value;
-            var phone = document.getElementById('phoneNumber').value;
-            if (phone !== "") {
-                window.open("https://web.whatsapp.com/send?phone=" + code + phone, "_blank");
-            }
-        }
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <title>محول الواتساب الخاص بي</title>
-    <script>
-        window.onload = function() {
-            const params = new URLSearchParams(window.location.search);
-            const phone = params.get('tel');
-            if (phone) {
-                // تنظيف الرقم من أي رموز زائدة
-                const cleanPhone = phone.replace(/\D/g, '');
-                window.location.href = "https://wa.me/" + cleanPhone;
-            }
-        }
-    </script>
-</head>
-<body style="text-align: center; font-family: sans-serif; padding-top: 50px;">
-    <h2>جاري التحويل للواتساب...</h2>
